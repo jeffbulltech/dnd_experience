@@ -12,6 +12,7 @@ dist/
 # Environment
 .env
 .env.*
+dnd.db
 
 # OS
 .DS_Store
