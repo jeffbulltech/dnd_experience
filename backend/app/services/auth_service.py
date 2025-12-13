@@ -12,7 +12,7 @@ from ..models import User
 from ..schemas.auth import LoginRequest, TokenResponse, UserCreate, UserRead
 
 settings = get_settings()
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
 ALGORITHM = "HS256"
 
 
