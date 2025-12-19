@@ -43,6 +43,20 @@ frontend/
    ```
 6. Access the app at `http://localhost:5173`, with the API served from `http://localhost:8000`.
 
+### Development
+
+For convenience, you can run both the frontend and backend concurrently from the project root. This script automatically uses the `uvicorn` inside your `.venv`.
+
+1. Install root dependencies (once):
+   ```bash
+   npm install
+   ```
+2. Start both servers:
+   ```bash
+   npm run dev
+   ```
+   This will show interleaved logs from both services with different colors.
+
 ### Authentication
 
 - Register a new account via the UI (or `POST /api/auth/register`) to create a user.
