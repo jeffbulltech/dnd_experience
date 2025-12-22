@@ -58,20 +58,33 @@ function Game(): JSX.Element {
   }
 
   return (
-    <div className="grid min-h-screen grid-cols-1 gap-4 bg-parchment/80 p-4 lg:grid-cols-[2fr,1fr]">
-      <section className="space-y-4">
-        <div className="rounded-lg border border-arcane-blue/40 bg-white/80 p-4 shadow">
+    <div className="grid min-h-screen grid-cols-1 gap-6 bg-gradient-to-br from-shadow-black via-arcane-blue-900/20 to-shadow-black p-6 lg:grid-cols-[2fr,1fr]">
+      <section className="space-y-6">
+        <div className="parchment-card p-6">
           {isLoadingState ? (
-            <p className="text-sm text-gray-600">Consulting the chronicles...</p>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📜</span>
+              <p className="text-sm font-display text-gray-700">Consulting the chronicles...</p>
+            </div>
           ) : isGameStateError ? (
-            <p className="text-sm text-ember-red">Unable to retrieve the current adventure state.</p>
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">⚠️</span>
+              <p className="text-sm font-medium text-ember-red-800">Unable to retrieve the current adventure state.</p>
+            </div>
           ) : gameState ? (
-            <div className="space-y-2">
-              <h1 className="text-2xl font-serif text-arcane-blue">Adventure Overview</h1>
-              <p className="text-sm text-gray-700">
-                <strong>Location:</strong> {gameState.location ?? "Unknown wilds"}
-              </p>
-              {gameState.summary ? <p className="text-sm text-gray-700">{gameState.summary}</p> : null}
+            <div className="space-y-3">
+              <h1 className="text-3xl font-display font-bold text-arcane-blue-900">Adventure Overview</h1>
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-gray-800">
+                  <span className="font-display text-arcane-blue-800">📍 Location:</span>{" "}
+                  <span className="text-gray-700">{gameState.location ?? "Unknown wilds"}</span>
+                </p>
+                {gameState.summary ? (
+                  <div className="mt-3 rounded-md border border-arcane-blue-200/50 bg-parchment-50/80 p-3">
+                    <p className="text-sm leading-relaxed text-gray-700">{gameState.summary}</p>
+                  </div>
+                ) : null}
+              </div>
             </div>
           ) : null}
         </div>
@@ -90,15 +103,21 @@ function Game(): JSX.Element {
           onRemove={(itemId) => deleteItem.mutate(itemId)}
         />
         {isLoadingCharacters ? (
-          <p className="text-sm text-gray-600">Fetching hero details...</p>
+          <div className="parchment-card p-4">
+            <p className="text-sm font-display text-gray-700">Fetching hero details...</p>
+          </div>
         ) : isCharactersError ? (
-          <p className="text-sm text-ember-red">Could not load character information.</p>
+          <div className="parchment-card p-4">
+            <p className="text-sm font-medium text-ember-red-800">Could not load character information.</p>
+          </div>
         ) : activeCharacter ? (
           <CharacterSheet character={activeCharacter} />
         ) : (
-          <p className="rounded border border-dashed border-arcane-blue/40 bg-white/70 p-3 text-sm text-gray-600">
-            No character is linked to this campaign yet. Create one to begin your journey.
-          </p>
+          <div className="parchment-card p-4 text-center">
+            <p className="text-sm font-display text-gray-700">
+              No character is linked to this campaign yet. Create one to begin your journey.
+            </p>
+          </div>
         )}
         <CombatTracker
           state={combatState}
