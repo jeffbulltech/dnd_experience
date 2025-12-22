@@ -1,0 +1,8 @@
+{
+  "id": "curse-of-strahd",
+  "name": "Curse of Strahd",
+  "description": "A gothic horror adventure where the party is trapped in the domain of Barovia, ruled by the vampire lord Strahd von Zarovich. They must survive the dark realm and find a way to defeat Strahd.",
+  "level_range": "1-10",
+  "setting": "Ravenloft - Domain of Dread",
+  "seed_content": "The adventure begins when the party is drawn into the mists of Ravenloft and finds themselves in the domain of Barovia, a land of perpetual gloom ruled by the vampire Count Strahd von Zarovich. The party must explore the gothic horror landscape, interact with the desperate inhabitants, and uncover the dark secrets of Castle Ravenloft. The adventure is highly atmospheric and focuses on survival, investigation, and eventually confronting Strahd in his castle. The land itself is a prison, and the party must find a way to either escape or defeat Strahd to free the domain."
+}

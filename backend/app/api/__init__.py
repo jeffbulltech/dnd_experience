@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from . import (
+    adventures,
     auth,
     campaigns,
     campaign_attachments,
@@ -26,3 +27,4 @@ router.include_router(game_state.router, tags=["game-state"])
 router.include_router(inventory.router, tags=["inventory"])
 router.include_router(character_builder.router)
 router.include_router(catalog.router, tags=["catalog"])
+router.include_router(adventures.router)
