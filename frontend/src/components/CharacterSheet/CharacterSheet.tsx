@@ -71,16 +71,19 @@ function CharacterSheet({ character }: CharacterSheetProps): JSX.Element {
   };
 
   return (
-    <section className="rounded-lg border border-arcane-blue/30 bg-white/85 p-4 shadow">
-      <header className="mb-3 flex items-center justify-between">
+    <section className="parchment-card p-5">
+      <header className="mb-4 flex items-center justify-between border-b-2 border-arcane-blue-800/30 pb-3">
         <div>
-          <h2 className="text-2xl font-serif text-arcane-blue">{character.name}</h2>
-          <p className="text-sm text-gray-700">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-2xl">🛡</span>
+            <h2 className="text-2xl font-display font-bold text-arcane-blue-900">{character.name}</h2>
+          </div>
+          <p className="text-sm font-display font-medium text-gray-700">
             Level {character.level} {character.race} {character.character_class}
           </p>
         </div>
         <button
-          className="rounded border border-arcane-blue px-3 py-1 text-xs uppercase text-arcane-blue hover:bg-arcane-blue hover:text-white disabled:opacity-50"
+          className="fantasy-button text-xs px-3 py-1 disabled:opacity-50"
           disabled={updateCharacter.isPending}
           onClick={() => setEditing((prev) => !prev)}
           type="button"
@@ -95,11 +98,11 @@ function CharacterSheet({ character }: CharacterSheetProps): JSX.Element {
             {abilityList.map(({ key, label, score }) => (
               <label
                 key={key}
-                className="flex flex-col rounded border border-gray-200 bg-parchment/60 p-3 text-center uppercase"
+                className="flex flex-col rounded-md border-2 border-arcane-blue-200/50 bg-parchment-50/90 p-3 text-center uppercase"
               >
-                <span className="text-xs font-semibold text-arcane-blue">{label}</span>
+                <span className="text-xs font-display font-bold text-arcane-blue-800">{label}</span>
                 <input
-                  className="mt-2 rounded border border-gray-300 p-1 text-sm focus:border-arcane-blue focus:outline-none"
+                  className="fantasy-input mt-2 text-center text-sm"
                   type="number"
                   value={score}
                   onChange={(event) => handleAbilityChange(key, Number(event.target.value))}
@@ -109,9 +112,9 @@ function CharacterSheet({ character }: CharacterSheetProps): JSX.Element {
           </div>
 
           <label className="block">
-            <span className="text-xs font-semibold uppercase text-gray-500">Background</span>
+            <span className="text-xs font-display font-semibold uppercase text-gray-600">Background</span>
             <textarea
-              className="mt-1 w-full rounded border border-gray-300 p-2 focus:border-arcane-blue focus:outline-none"
+              className="fantasy-input mt-2 w-full"
               rows={3}
               value={background}
               onChange={(event) => setBackground(event.target.value)}
@@ -120,18 +123,18 @@ function CharacterSheet({ character }: CharacterSheetProps): JSX.Element {
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block">
-              <span className="text-xs font-semibold uppercase text-gray-500">Alignment</span>
+              <span className="text-xs font-display font-semibold uppercase text-gray-600">Alignment</span>
               <input
-                className="mt-1 w-full rounded border border-gray-300 p-2 focus:border-arcane-blue focus:outline-none"
+                className="fantasy-input mt-2 w-full"
                 value={alignment}
                 onChange={(event) => setAlignment(event.target.value)}
                 placeholder="Chaotic Good"
               />
             </label>
             <label className="block">
-              <span className="text-xs font-semibold uppercase text-gray-500">Experience Points</span>
+              <span className="text-xs font-display font-semibold uppercase text-gray-600">Experience Points</span>
               <input
-                className="mt-1 w-full rounded border border-gray-300 p-2 focus:border-arcane-blue focus:outline-none"
+                className="fantasy-input mt-2 w-full"
                 type="number"
                 value={experience}
                 onChange={(event) => setExperience(Number(event.target.value))}
@@ -141,9 +144,9 @@ function CharacterSheet({ character }: CharacterSheetProps): JSX.Element {
           </div>
 
           <label className="block">
-            <span className="text-xs font-semibold uppercase text-gray-500">Notes</span>
+            <span className="text-xs font-display font-semibold uppercase text-gray-600">Notes</span>
             <textarea
-              className="mt-1 w-full rounded border border-gray-300 p-2 focus:border-arcane-blue focus:outline-none"
+              className="fantasy-input mt-2 w-full"
               rows={3}
               value={notes}
               onChange={(event) => setNotes(event.target.value)}
@@ -151,14 +154,18 @@ function CharacterSheet({ character }: CharacterSheetProps): JSX.Element {
           </label>
 
           {updateCharacter.isError ? (
-            <p className="text-xs text-ember-red">Failed to update character. Please try again.</p>
+            <div className="rounded-md border-2 border-ember-red-600 bg-ember-red-50 p-2">
+              <p className="text-xs font-medium text-ember-red-800">Failed to update character. Please try again.</p>
+            </div>
           ) : null}
           {updateCharacter.isSuccess ? (
-            <p className="text-xs text-forest-green">Character updated.</p>
+            <div className="rounded-md border-2 border-forest-green-600 bg-forest-green-50 p-2">
+              <p className="text-xs font-medium text-forest-green-800">Character updated.</p>
+            </div>
           ) : null}
 
           <button
-            className="w-full rounded bg-forest-green px-4 py-2 text-sm font-semibold text-white hover:bg-forest-green/90 disabled:opacity-50"
+            className="fantasy-button w-full bg-gradient-to-b from-forest-green-700 to-forest-green-900 hover:from-forest-green-600 hover:to-forest-green-800 disabled:opacity-50"
             disabled={updateCharacter.isPending}
             type="submit"
           >
@@ -171,35 +178,35 @@ function CharacterSheet({ character }: CharacterSheetProps): JSX.Element {
             {abilityList.map(({ key, label, score, modifier }) => (
               <div
                 key={key}
-                className={`rounded border ${stateClass(score)} bg-parchment/60 p-3 text-center uppercase`}
+                className={`rounded-md border-2 ${stateClass(score)} bg-parchment-50/90 p-3 text-center uppercase shadow-sm`}
               >
-                <span className="text-xs font-semibold text-arcane-blue">{label}</span>
-                <p className="text-xl font-bold">{score}</p>
-                <p className="text-xs text-gray-600">{modifier >= 0 ? `+${modifier}` : modifier}</p>
+                <span className="text-xs font-display font-bold text-arcane-blue-800">{label}</span>
+                <p className="text-2xl font-display font-bold text-gray-900">{score}</p>
+                <p className="text-xs font-semibold text-gray-600">{modifier >= 0 ? `+${modifier}` : modifier}</p>
               </div>
             ))}
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <h3 className="text-xs font-semibold uppercase text-gray-500">Alignment</h3>
-              <p>{character.alignment ?? "Unaligned"}</p>
+            <div className="rounded-md border border-arcane-blue-200/50 bg-parchment-50/80 p-3">
+              <h3 className="text-xs font-display font-semibold uppercase text-gray-600">Alignment</h3>
+              <p className="mt-1 font-medium">{character.alignment ?? "Unaligned"}</p>
             </div>
-            <div>
-              <h3 className="text-xs font-semibold uppercase text-gray-500">Experience</h3>
-              <p>{character.experience_points ?? 0} XP</p>
+            <div className="rounded-md border border-arcane-blue-200/50 bg-parchment-50/80 p-3">
+              <h3 className="text-xs font-display font-semibold uppercase text-gray-600">Experience</h3>
+              <p className="mt-1 font-medium">{character.experience_points ?? 0} XP</p>
             </div>
           </div>
 
-          <div>
-            <h3 className="text-xs font-semibold uppercase text-gray-500">Background</h3>
-            <p>{character.background ?? "Unknown origins"}</p>
+          <div className="rounded-md border border-arcane-blue-200/50 bg-parchment-50/80 p-3">
+            <h3 className="text-xs font-display font-semibold uppercase text-gray-600">Background</h3>
+            <p className="mt-1">{character.background ?? "Unknown origins"}</p>
           </div>
 
           {character.notes ? (
-            <div>
-              <h3 className="text-xs font-semibold uppercase text-gray-500">Notes</h3>
-              <p>{character.notes}</p>
+            <div className="rounded-md border border-arcane-blue-200/50 bg-parchment-50/80 p-3">
+              <h3 className="text-xs font-display font-semibold uppercase text-gray-600">Notes</h3>
+              <p className="mt-1 whitespace-pre-wrap">{character.notes}</p>
             </div>
           ) : null}
         </div>
@@ -209,9 +216,9 @@ function CharacterSheet({ character }: CharacterSheetProps): JSX.Element {
 }
 
 function stateClass(score: number): string {
-  if (score >= 16) return "border-forest-green";
-  if (score <= 8) return "border-ember-red";
-  return "border-gray-200";
+  if (score >= 16) return "border-forest-green-600";
+  if (score <= 8) return "border-ember-red-600";
+  return "border-arcane-blue-200/50";
 }
 
 export default CharacterSheet;

@@ -27,42 +27,50 @@ function Login(): JSX.Element {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-parchment/80 p-6">
-      <div className="w-full max-w-md rounded-lg border border-arcane-blue/40 bg-white/90 p-6 shadow">
-        <h1 className="mb-4 text-2xl font-serif text-arcane-blue">Welcome back, adventurer</h1>
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <label className="block text-sm font-semibold text-arcane-blue">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-shadow-black via-arcane-blue-900/20 to-shadow-black p-6">
+      <div className="parchment-card w-full max-w-md p-8">
+        <div className="mb-6 text-center">
+          <div className="mb-3 text-5xl font-display text-arcane-blue-800">⚔</div>
+          <h1 className="text-3xl font-display font-bold text-arcane-blue-900">Welcome back, adventurer</h1>
+          <p className="mt-2 text-sm text-gray-700">Enter the realm once more</p>
+        </div>
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <label className="block text-sm font-display font-semibold text-arcane-blue-800">
             Username
             <input
-              className="mt-1 w-full rounded border border-gray-300 p-2 text-sm focus:border-arcane-blue focus:outline-none"
+              className="fantasy-input mt-2 w-full"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               required
             />
           </label>
-          <label className="block text-sm font-semibold text-arcane-blue">
+          <label className="block text-sm font-display font-semibold text-arcane-blue-800">
             Password
             <input
-              className="mt-1 w-full rounded border border-gray-300 p-2 text-sm focus:border-arcane-blue focus:outline-none"
+              className="fantasy-input mt-2 w-full"
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               required
             />
           </label>
-          {error ? <p className="text-sm text-ember-red">{error}</p> : null}
+          {error ? (
+            <div className="rounded-md border-2 border-ember-red-600 bg-ember-red-50 p-3">
+              <p className="text-sm font-medium text-ember-red-800">{error}</p>
+            </div>
+          ) : null}
           <button
-            className="w-full rounded bg-arcane-blue px-4 py-2 text-sm font-semibold text-white hover:bg-arcane-blue/90 disabled:opacity-50"
+            className="fantasy-button w-full disabled:opacity-50"
             disabled={isSubmitting}
             type="submit"
           >
-            {isSubmitting ? "Signing in..." : "Sign In"}
+            {isSubmitting ? "Signing in..." : "Enter the Realm"}
           </button>
         </form>
-        <p className="mt-4 text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-gray-700">
           Need an account?{" "}
-          <Link className="text-arcane-blue hover:underline" to="/register">
-            Register here
+          <Link className="font-display font-semibold text-arcane-blue-800 hover:text-arcane-blue-600 hover:underline" to="/register">
+            Forge your path here
           </Link>
         </p>
       </div>
