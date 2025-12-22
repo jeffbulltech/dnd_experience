@@ -6,6 +6,9 @@
   body {
     margin: 0;
     font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    text-transform: none;
     background: linear-gradient(
         135deg,
         rgba(26, 26, 26, 0.95) 0%,
@@ -21,6 +24,10 @@
   #root {
     min-height: 100vh;
     backdrop-filter: blur(1px);
+  }
+
+  p {
+    text-transform: none;
   }
 }
 
@@ -54,7 +61,7 @@
   }
 
   .fantasy-button {
-    @apply relative rounded-md border-2 border-arcane-blue-800 bg-gradient-to-b from-arcane-blue-700 to-arcane-blue-900 px-4 py-2 font-display text-sm font-semibold text-white transition-all duration-200;
+    @apply relative rounded-md border-2 border-arcane-blue-800 bg-gradient-to-b from-arcane-blue-700 to-arcane-blue-900 px-6 py-3 font-display text-base font-semibold text-white transition-all duration-200;
     box-shadow: 
       0 4px 6px -1px rgba(0, 0, 0, 0.3),
       inset 0 1px 0 0 rgba(255, 255, 255, 0.2),
@@ -79,7 +86,7 @@
   }
 
   .fantasy-input {
-    @apply rounded-md border-2 border-arcane-blue-300/50 bg-parchment-50 px-3 py-2 text-sm text-ink-black transition-colors;
+    @apply rounded-md border-2 border-arcane-blue-300/50 bg-parchment-50 px-4 py-3 text-base text-ink-black transition-colors;
     font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     text-transform: none;
     box-shadow: 

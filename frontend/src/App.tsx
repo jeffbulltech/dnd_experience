@@ -15,24 +15,24 @@ function ProtectedLayout(): JSX.Element {
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-shadow-black via-arcane-blue-900/20 to-shadow-black">
       <header className="relative border-b-2 border-dragon-gold-600/40 bg-gradient-to-r from-arcane-blue-900/95 via-arcane-blue-800/95 to-arcane-blue-900/95 backdrop-blur-sm">
         <div className="absolute inset-0 bg-parchment-texture opacity-10"></div>
-        <div className="relative mx-auto flex max-w-5xl items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-dragon-gold-500/60 bg-gradient-to-br from-dragon-gold-400 to-dragon-gold-700 shadow-lg">
-              <span className="text-lg font-display text-shadow-black">⚔</span>
+        <div className="relative mx-auto flex max-w-5xl items-center justify-between p-5">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dragon-gold-500/60 bg-gradient-to-br from-dragon-gold-400 to-dragon-gold-700 shadow-lg">
+              <span className="text-xl font-display text-shadow-black">⚔</span>
             </div>
             <div>
-              <h1 className="text-2xl font-display font-bold text-dragon-gold-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+              <h1 className="text-3xl font-display font-bold text-dragon-gold-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
                 D&D AI Game Master
               </h1>
               {user ? (
-                <p className="text-xs font-medium text-parchment-200/90">
+                <p className="text-sm font-medium text-parchment-200/90">
                   Adventurer: <span className="text-dragon-gold-200">{user.display_name}</span>
                 </p>
               ) : null}
             </div>
           </div>
           <button
-            className="fantasy-button text-sm"
+            className="fantasy-button text-base"
             onClick={logout}
             type="button"
           >
