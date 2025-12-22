@@ -26,9 +26,13 @@ function Register(): JSX.Element {
         password
       });
       navigate("/campaigns", { replace: true });
-    } catch (err) {
-      console.error(err);
-      setError("Unable to register. Please check your details and try again.");
+    } catch (err: any) {
+      console.error("Registration error:", err);
+      // Extract error message from API response
+      const errorMessage = err?.response?.data?.detail || 
+                          err?.message || 
+                          "Unable to register. Please check your details and try again.";
+      setError(errorMessage);
     } finally {
       setSubmitting(false);
     }
