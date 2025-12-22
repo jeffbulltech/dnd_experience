@@ -35,42 +35,46 @@ function Register(): JSX.Element {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-parchment/80 p-6">
-      <div className="w-full max-w-md rounded-lg border border-arcane-blue/40 bg-white/90 p-6 shadow">
-        <h1 className="mb-4 text-2xl font-serif text-arcane-blue">Forge your adventurer profile</h1>
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <label className="block text-sm font-semibold text-arcane-blue">
+    <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-shadow-black via-arcane-blue-900/20 to-shadow-black p-6">
+      <div className="parchment-card w-full max-w-md p-8">
+        <div className="mb-6 text-center">
+          <div className="mb-3 text-5xl font-display text-forest-green-800">🛡</div>
+          <h1 className="text-3xl font-display font-bold text-arcane-blue-900">Forge your adventurer profile</h1>
+          <p className="mt-2 text-sm text-gray-700">Begin your legendary journey</p>
+        </div>
+        <form className="space-y-5" onSubmit={handleSubmit}>
+          <label className="block text-sm font-display font-semibold text-arcane-blue-800">
             Email
             <input
-              className="mt-1 w-full rounded border border-gray-300 p-2 text-sm focus:border-arcane-blue focus:outline-none"
+              className="fantasy-input mt-2 w-full"
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               required
             />
           </label>
-          <label className="block text-sm font-semibold text-arcane-blue">
+          <label className="block text-sm font-display font-semibold text-arcane-blue-800">
             Username
             <input
-              className="mt-1 w-full rounded border border-gray-300 p-2 text-sm focus:border-arcane-blue focus:outline-none"
+              className="fantasy-input mt-2 w-full"
               value={username}
               onChange={(event) => setUsername(event.target.value)}
               required
             />
           </label>
-          <label className="block text-sm font-semibold text-arcane-blue">
+          <label className="block text-sm font-display font-semibold text-arcane-blue-800">
             Display Name
             <input
-              className="mt-1 w-full rounded border border-gray-300 p-2 text-sm focus:border-arcane-blue focus:outline-none"
+              className="fantasy-input mt-2 w-full"
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
               required
             />
           </label>
-          <label className="block text-sm font-semibold text-arcane-blue">
+          <label className="block text-sm font-display font-semibold text-arcane-blue-800">
             Password
             <input
-              className="mt-1 w-full rounded border border-gray-300 p-2 text-sm focus:border-arcane-blue focus:outline-none"
+              className="fantasy-input mt-2 w-full"
               type="password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
@@ -78,19 +82,23 @@ function Register(): JSX.Element {
               minLength={8}
             />
           </label>
-          {error ? <p className="text-sm text-ember-red">{error}</p> : null}
+          {error ? (
+            <div className="rounded-md border-2 border-ember-red-600 bg-ember-red-50 p-3">
+              <p className="text-sm font-medium text-ember-red-800">{error}</p>
+            </div>
+          ) : null}
           <button
-            className="w-full rounded bg-forest-green px-4 py-2 text-sm font-semibold text-white hover:bg-forest-green/90 disabled:opacity-50"
+            className="fantasy-button w-full bg-gradient-to-b from-forest-green-700 to-forest-green-900 hover:from-forest-green-600 hover:to-forest-green-800 disabled:opacity-50"
             disabled={isSubmitting}
             type="submit"
           >
-            {isSubmitting ? "Registering..." : "Create Account"}
+            {isSubmitting ? "Forging your path..." : "Create Account"}
           </button>
         </form>
-        <p className="mt-4 text-sm text-gray-600">
+        <p className="mt-6 text-center text-sm text-gray-700">
           Already have an account?{" "}
-          <Link className="text-arcane-blue hover:underline" to="/login">
-            Sign in
+          <Link className="font-display font-semibold text-arcane-blue-800 hover:text-arcane-blue-600 hover:underline" to="/login">
+            Return to the realm
           </Link>
         </p>
       </div>
