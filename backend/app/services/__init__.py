@@ -1,4 +1,5 @@
 from . import (
+    adventure_service,
     attachment_service,
     auth_service,
     campaign_service,
@@ -19,6 +20,7 @@ from . import (
 )
 
 __all__ = [
+    "adventure_service",
     "attachment_service",
     "auth_service",
     "campaign_service",
