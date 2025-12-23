@@ -1,4 +1,4 @@
-import { Navigate, Outlet, Route, Routes } from "react-router-dom";
+import { Link, Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 
 import { useAuth } from "./contexts/AuthContext";
 import CampaignSelect from "./pages/CampaignSelect";
@@ -10,6 +10,8 @@ import Register from "./pages/Register";
 
 function ProtectedLayout(): JSX.Element {
   const { user, logout } = useAuth();
+  const location = useLocation();
+  const isHomePage = location.pathname === "/campaigns" || location.pathname === "/";
 
   return (
     <div className="flex min-h-screen flex-col bg-gradient-to-br from-shadow-black via-arcane-blue-900/20 to-shadow-black">
@@ -17,27 +19,40 @@ function ProtectedLayout(): JSX.Element {
         <div className="absolute inset-0 bg-parchment-texture opacity-10"></div>
         <div className="relative mx-auto flex max-w-5xl items-center justify-between p-5">
           <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dragon-gold-500/60 bg-gradient-to-br from-dragon-gold-400 to-dragon-gold-700 shadow-lg">
-              <span className="text-xl font-display text-shadow-black">⚔</span>
-            </div>
-            <div>
-              <h1 className="text-3xl font-display font-bold text-dragon-gold-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-                D&D AI Game Master
-              </h1>
-              {user ? (
-                <p className="text-sm font-medium text-parchment-200/90">
-                  Adventurer: <span className="text-dragon-gold-200">{user.display_name}</span>
-                </p>
-              ) : null}
-            </div>
+            <Link to="/campaigns" className="flex items-center gap-4 hover:opacity-90 transition-opacity">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dragon-gold-500/60 bg-gradient-to-br from-dragon-gold-400 to-dragon-gold-700 shadow-lg">
+                <span className="text-xl font-display text-shadow-black">⚔</span>
+              </div>
+              <div>
+                <h1 className="text-3xl font-display font-bold text-dragon-gold-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
+                  D&D AI Game Master
+                </h1>
+                {user ? (
+                  <p className="text-sm font-medium text-parchment-200/90">
+                    Adventurer: <span className="text-dragon-gold-200">{user.display_name}</span>
+                  </p>
+                ) : null}
+              </div>
+            </Link>
           </div>
-          <button
-            className="fantasy-button text-base"
-            onClick={logout}
-            type="button"
-          >
-            Sign Out
-          </button>
+          <div className="flex items-center gap-3">
+            {!isHomePage && (
+              <Link
+                to="/campaigns"
+                className="fantasy-button text-base"
+                type="button"
+              >
+                Home
+              </Link>
+            )}
+            <button
+              className="fantasy-button text-base"
+              onClick={logout}
+              type="button"
+            >
+              Sign Out
+            </button>
+          </div>
         </div>
       </header>
       <main className="flex-1">

@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useChatHistory } from "../../hooks/useChatHistory";
@@ -19,6 +19,8 @@ function ChatInterface({ campaignId, characterId, onToggleCombat }: ChatInterfac
   const [modelName, setModelName] = useState<string | null>(null);
   const queryClient = useQueryClient();
   const { data: history, isLoading: isLoadingHistory } = useChatHistory(campaignId);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (history) {
@@ -35,6 +37,15 @@ function ChatInterface({ campaignId, characterId, onToggleCombat }: ChatInterfac
       setMessages(normalized);
     }
   }, [history]);
+
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, isLoading]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -103,8 +114,8 @@ function ChatInterface({ campaignId, characterId, onToggleCombat }: ChatInterfac
   }, [messages]);
 
   return (
-    <div className="parchment-card flex h-[70vh] flex-col">
-      <div className="border-b-2 border-arcane-blue-800/30 bg-gradient-to-r from-arcane-blue-50 to-parchment-100 p-3">
+    <div className="parchment-card flex h-[70vh] flex-col overflow-hidden">
+      <div className="border-b-2 border-arcane-blue-800/30 bg-gradient-to-r from-arcane-blue-50 to-parchment-100 p-3 flex-shrink-0">
         <div className="flex flex-wrap items-center gap-2 text-xs">
           <span className="font-display font-semibold text-arcane-blue-800">
             Campaign: {campaignId}
@@ -120,7 +131,7 @@ function ChatInterface({ campaignId, characterId, onToggleCombat }: ChatInterfac
           ) : null}
         </div>
       </div>
-      <div className="scroll-container space-y-3 p-4">
+      <div ref={messagesContainerRef} className="scroll-container space-y-3 p-4 overflow-y-auto flex-1 min-h-0">
         {isLoadingHistory ? (
           <div className="flex items-center gap-2 text-sm text-gray-700">
             <span className="text-lg">🔮</span>
@@ -134,7 +145,8 @@ function ChatInterface({ campaignId, characterId, onToggleCombat }: ChatInterfac
             </p>
           </div>
         ) : (
-          messages.map((message) => {
+          <>
+            {messages.map((message) => {
             const ragSources = (message.metadata?.ragSources as string[] | undefined) ?? [];
             const ragCitations = message.metadata?.ragCitations as RAGCitation[] | undefined;
             const chatSummary = message.metadata?.chatSummary as string | undefined;
@@ -188,7 +200,16 @@ function ChatInterface({ campaignId, characterId, onToggleCombat }: ChatInterfac
                 ) : null}
               </div>
             );
-          })
+          })}
+            {/* Scroll anchor */}
+            <div ref={messagesEndRef} />
+            {isLoading && (
+              <div className="flex items-center gap-2 text-sm text-gray-700">
+                <span className="text-lg animate-pulse">🔮</span>
+                <p className="font-display">The Dungeon Master is thinking...</p>
+              </div>
+            )}
+          </>
         )}
       </div>
       {lastError ? (
@@ -196,7 +217,7 @@ function ChatInterface({ campaignId, characterId, onToggleCombat }: ChatInterfac
           <p className="text-xs font-medium text-ember-red-800">{lastError}</p>
         </div>
       ) : null}
-      <form className="mt-auto border-t-2 border-arcane-blue-800/30 bg-gradient-to-r from-parchment-50 to-parchment-100 p-4" onSubmit={handleSubmit}>
+      <form className="mt-auto border-t-2 border-arcane-blue-800/30 bg-gradient-to-r from-parchment-50 to-parchment-100 p-4 flex-shrink-0" onSubmit={handleSubmit}>
         <div className="flex items-end gap-3">
           <textarea
             className="fantasy-input h-24 flex-1 resize-none"
