@@ -1,6 +1,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
+import { useAdventures } from "../hooks/useAdventures";
 import { useCampaigns, useCreateCampaign } from "../hooks/useCampaigns";
 import { useCharacters } from "../hooks/useCharacters";
 import { useCreateDraft, useCharacterDrafts, useDeleteDraft } from "../hooks/useCharacterDrafts";
@@ -17,9 +18,11 @@ function CampaignSelect(): JSX.Element {
   const { data: drafts = [], isLoading: isLoadingDrafts } = useCharacterDrafts();
   const createDraft = useCreateDraft();
   const deleteDraft = useDeleteDraft();
+  const { data: adventures = [], isLoading: isLoadingAdventures } = useAdventures();
   const [isFormOpen, setFormOpen] = useState(false);
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [adventureTemplateId, setAdventureTemplateId] = useState<string>("custom");
   const [formError, setFormError] = useState<string | null>(null);
 
   const handleCreateCampaign = async (event: FormEvent<HTMLFormElement>) => {
@@ -31,10 +34,17 @@ function CampaignSelect(): JSX.Element {
 
     try {
       setFormError(null);
-      await createCampaign.mutateAsync({ name, description: description || null });
+      await createCampaign.mutateAsync({
+        name,
+        description: description || null,
+        adventure_template_id: adventureTemplateId === "custom" ? null : adventureTemplateId,
+      });
       setName("");
       setDescription("");
+      setAdventureTemplateId("custom");
       setFormOpen(false);
+      // Scroll to top to show the new campaign
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (error) {
       console.error("Failed to create campaign", error);
       setFormError("Unable to create campaign. Please try again.");
@@ -97,12 +107,6 @@ function CampaignSelect(): JSX.Element {
                         to={`/game/${campaign.id}`}
                       >
                         Continue
-                      </Link>
-                      <Link
-                        className="rounded-md border-2 border-arcane-blue-600 bg-arcane-blue-50 px-4 py-2 text-sm font-display font-semibold text-arcane-blue-800 transition-colors hover:bg-arcane-blue-200"
-                        to={`/campaigns/${campaign.id}/manage`}
-                      >
-                        Manage
                       </Link>
                     </div>
                   </div>
@@ -190,10 +194,10 @@ function CampaignSelect(): JSX.Element {
         <div className="flex flex-wrap gap-3">
           <button
             className="fantasy-button bg-gradient-to-b from-forest-green-700 to-forest-green-900 hover:from-forest-green-600 hover:to-forest-green-800"
-            onClick={() => setFormOpen((prev) => !prev)}
+            onClick={() => setFormOpen(true)}
             type="button"
           >
-            {isFormOpen ? "Cancel Campaign" : "New Campaign"}
+            New Campaign
           </button>
           <button
             className="fantasy-button"
@@ -250,49 +254,139 @@ function CampaignSelect(): JSX.Element {
       </div>
 
       {isFormOpen ? (
-        <form
-          className="parchment-card space-y-6 p-8"
-          onSubmit={handleCreateCampaign}
-        >
-          <div>
-            <label className="block text-base font-display font-semibold text-arcane-blue-900">
-              Campaign Name
-              <input
-                className="fantasy-input mt-3 w-full"
-                placeholder="Shadows of the Moonsea"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
-            </label>
-          </div>
-
-          <div>
-            <label className="block text-base font-display font-semibold text-arcane-blue-900">
-              Premise (optional)
-              <textarea
-                className="fantasy-input mt-3 w-full"
-                placeholder="A tale of intrigue and eldritch forces..."
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                rows={4}
-              />
-            </label>
-          </div>
-
-          {formError ? (
-            <div className="rounded-md border-2 border-ember-red-600 bg-ember-red-50 p-4">
-              <p className="text-base font-medium text-ember-red-800">{formError}</p>
-            </div>
-          ) : null}
-
-          <button
-            className="fantasy-button w-full bg-gradient-to-b from-forest-green-700 to-forest-green-900 hover:from-forest-green-600 hover:to-forest-green-800 disabled:opacity-50"
-            disabled={createCampaign.isPending}
-            type="submit"
+        <>
+          {/* Modal Overlay */}
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            onClick={() => setFormOpen(false)}
           >
-            {createCampaign.isPending ? "Forging realm..." : "Create Campaign"}
-          </button>
-        </form>
+            {/* Modal Content */}
+            <div
+              className="parchment-card w-full max-w-2xl max-h-[90vh] overflow-y-auto space-y-6 p-8"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-3xl font-display font-bold text-arcane-blue-900">Create New Campaign</h2>
+                <button
+                  className="text-2xl text-gray-600 hover:text-gray-900 transition-colors"
+                  onClick={() => {
+                    setFormOpen(false);
+                    setFormError(null);
+                  }}
+                  type="button"
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+              </div>
+
+              <form onSubmit={handleCreateCampaign} className="space-y-6">
+                <div>
+                  <label className="block text-base font-display font-semibold text-arcane-blue-900">
+                    Campaign Name
+                    <input
+                      className="fantasy-input mt-3 w-full"
+                      placeholder="Shadows of the Moonsea"
+                      value={name}
+                      onChange={(event) => setName(event.target.value)}
+                      required
+                    />
+                  </label>
+                </div>
+
+                <div>
+                  <label className="block text-base font-display font-semibold text-arcane-blue-900 mb-3">
+                    Adventure Selection
+                  </label>
+                  {isLoadingAdventures ? (
+                    <p className="text-lg text-gray-700">Loading adventures...</p>
+                  ) : (
+                    <div className="space-y-3 max-h-64 overflow-y-auto scroll-container">
+                      <label className="flex items-start gap-3 p-4 rounded-md border-2 border-arcane-blue-200/50 bg-parchment-50/90 cursor-pointer hover:border-arcane-blue-400/60 transition-colors">
+                        <input
+                          type="radio"
+                          name="adventure"
+                          value="custom"
+                          checked={adventureTemplateId === "custom"}
+                          onChange={(e) => setAdventureTemplateId(e.target.value)}
+                          className="mt-1"
+                        />
+                        <div className="flex-1">
+                          <div className="font-display font-bold text-lg text-arcane-blue-900">Create Custom Adventure</div>
+                          <p className="text-base text-gray-700 mt-1">
+                            Let the AI Game Master create a unique adventure tailored to your campaign.
+                          </p>
+                        </div>
+                      </label>
+
+                      {adventures.map((adventure) => (
+                        <label
+                          key={adventure.id}
+                          className="flex items-start gap-3 p-4 rounded-md border-2 border-arcane-blue-200/50 bg-parchment-50/90 cursor-pointer hover:border-arcane-blue-400/60 transition-colors"
+                        >
+                          <input
+                            type="radio"
+                            name="adventure"
+                            value={adventure.id}
+                            checked={adventureTemplateId === adventure.id}
+                            onChange={(e) => setAdventureTemplateId(e.target.value)}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <div className="font-display font-bold text-lg text-arcane-blue-900">{adventure.name}</div>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {adventure.setting} • Levels {adventure.level_range}
+                            </p>
+                            <p className="text-base text-gray-700 mt-2">{adventure.description}</p>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-base font-display font-semibold text-arcane-blue-900">
+                    Premise (optional)
+                    <textarea
+                      className="fantasy-input mt-3 w-full"
+                      placeholder="A tale of intrigue and eldritch forces..."
+                      value={description}
+                      onChange={(event) => setDescription(event.target.value)}
+                      rows={4}
+                    />
+                  </label>
+                </div>
+
+                {formError ? (
+                  <div className="rounded-md border-2 border-ember-red-600 bg-ember-red-50 p-4">
+                    <p className="text-base font-medium text-ember-red-800">{formError}</p>
+                  </div>
+                ) : null}
+
+                <div className="flex gap-3">
+                  <button
+                    className="fantasy-button flex-1 bg-gradient-to-b from-forest-green-700 to-forest-green-900 hover:from-forest-green-600 hover:to-forest-green-800 disabled:opacity-50"
+                    disabled={createCampaign.isPending}
+                    type="submit"
+                  >
+                    {createCampaign.isPending ? "Forging realm..." : "Create Campaign"}
+                  </button>
+                  <button
+                    className="fantasy-button bg-gradient-to-b from-ember-red-700 to-ember-red-900 hover:from-ember-red-600 hover:to-ember-red-800"
+                    onClick={() => {
+                      setFormOpen(false);
+                      setFormError(null);
+                    }}
+                    type="button"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </>
       ) : null}
     </div>
   );
