@@ -19,3 +19,6 @@ dnd.db
 
 # Development Docker
 docker-compose.yml
+
+# Misc
+project_review.md

@@ -19,6 +19,7 @@ export function useCampaigns() {
 type CreateCampaignPayload = {
   name: string;
   description?: string | null;
+  adventure_template_id?: string | null;
 };
 
 async function createCampaignRequest(payload: CreateCampaignPayload): Promise<Campaign> {
@@ -32,7 +33,9 @@ export function useCreateCampaign() {
   return useMutation({
     mutationFn: createCampaignRequest,
     onSuccess: () => {
+      // Invalidate and refetch campaigns to show the new campaign immediately
       queryClient.invalidateQueries({ queryKey: ["campaigns"] });
+      queryClient.refetchQueries({ queryKey: ["campaigns"] });
     }
   });
 }
