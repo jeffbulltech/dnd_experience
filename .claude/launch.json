@@ -2,10 +2,17 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "birthday-leaderboard",
+      "name": "frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "port": 5173,
+      "cwd": "frontend"
+    },
+    {
+      "name": "backend",
       "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "5500", "--directory", "/Users/jbthejedi/Documents/developer/birthday_leaderboard"],
-      "port": 5500
+      "runtimeArgs": ["-m", "uvicorn", "backend.app.main:app", "--reload"],
+      "port": 8000
     }
   ]
 }
