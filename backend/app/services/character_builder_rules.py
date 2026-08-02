@@ -49,12 +49,8 @@ def _normalize_scores(raw_scores: Any) -> dict[str, int]:
     raise AbilityScoreValidationError("Ability scores must be provided as a dict or list of six values.")
 
 
-def _ability_mod(score: int) -> int:
-    return (score - 10) // 2
-
-
 def ability_modifier(score: int) -> int:
-    return _ability_mod(score)
+    return (score - 10) // 2
 
 
 def proficiency_bonus(level: int) -> int:
@@ -120,7 +116,7 @@ def validate_and_normalize_ability_scores(payload: dict[str, Any]) -> dict[str, 
             if value < 3 or value > 18:
                 raise AbilityScoreValidationError("Manual ability scores must be between 3 and 18.")
 
-    modifiers = {ability: _ability_mod(score) for ability, score in scores.items()}
+    modifiers = {ability: ability_modifier(score) for ability, score in scores.items()}
 
     return {
         "method": method,

@@ -40,9 +40,15 @@ class Campaign(Base):
     game_state: Mapped["GameState"] = relationship(
         "GameState", back_populates="campaign", uselist=False, cascade="all, delete-orphan"
     )
-    chats: Mapped[list["ChatMessage"]] = relationship("ChatMessage", back_populates="campaign")
-    encounters: Mapped[list["Encounter"]] = relationship("Encounter", back_populates="campaign")
-    dice_rolls: Mapped[list["DiceRoll"]] = relationship("DiceRoll", back_populates="campaign")
+    chats: Mapped[list["ChatMessage"]] = relationship(
+        "ChatMessage", back_populates="campaign", cascade="all, delete-orphan"
+    )
+    encounters: Mapped[list["Encounter"]] = relationship(
+        "Encounter", back_populates="campaign", cascade="all, delete-orphan"
+    )
+    dice_rolls: Mapped[list["DiceRoll"]] = relationship(
+        "DiceRoll", back_populates="campaign", cascade="all, delete-orphan"
+    )
     attachments: Mapped[list["CampaignAttachment"]] = relationship(
         "CampaignAttachment", back_populates="campaign", cascade="all, delete-orphan"
     )

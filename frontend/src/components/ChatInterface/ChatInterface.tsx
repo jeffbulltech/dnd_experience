@@ -1,8 +1,7 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { useChatHistory } from "../../hooks/useChatHistory";
-import { api } from "../../services/api";
 import { ChatMessage as ChatMessageType, RAGCitation } from "../../types";
 
 type ChatInterfaceProps = {
@@ -18,25 +17,52 @@ function ChatInterface({ campaignId, characterId, onToggleCombat }: ChatInterfac
   const [lastError, setLastError] = useState<string | null>(null);
   const [modelName, setModelName] = useState<string | null>(null);
   const queryClient = useQueryClient();
-  const { data: history, isLoading: isLoadingHistory } = useChatHistory(campaignId);
+  const {
+    data: historyData,
+    isLoading: isLoadingHistory,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useChatHistory(campaignId);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (history) {
-      const normalized = history
-        .slice()
-        .reverse()
-        .map((entry) => ({
-          id: entry.id.toString(),
-          role: entry.role === "system" ? "gm" : (entry.role as ChatMessageType["role"]),
-          content: entry.content,
-          createdAt: entry.created_at,
-          metadata: entry.metadata ?? {}
-        }));
+    if (historyData) {
+      // Flatten all pages, each page has items in newest-first order
+      const allEntries = historyData.pages.flatMap((page) => page.items);
+      // Reverse to chronological (oldest first) and deduplicate by id
+      const seen = new Set<number>();
+      const unique = allEntries.reverse().filter((entry) => {
+        if (seen.has(entry.id)) return false;
+        seen.add(entry.id);
+        return true;
+      });
+      const normalized = unique.map((entry) => ({
+        id: entry.id.toString(),
+        role: entry.role === "system" ? "gm" : (entry.role as ChatMessageType["role"]),
+        content: entry.content,
+        createdAt: entry.created_at,
+        metadata: entry.metadata ?? {}
+      }));
       setMessages(normalized);
     }
-  }, [history]);
+  }, [historyData]);
+
+  const handleLoadEarlier = useCallback(() => {
+    if (!hasNextPage || isFetchingNextPage) return;
+    const container = messagesContainerRef.current;
+    const prevScrollHeight = container?.scrollHeight ?? 0;
+    fetchNextPage().then(() => {
+      // Preserve scroll position after prepending older messages
+      requestAnimationFrame(() => {
+        if (container) {
+          const newScrollHeight = container.scrollHeight;
+          container.scrollTop = newScrollHeight - prevScrollHeight;
+        }
+      });
+    });
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -63,37 +89,105 @@ function ChatInterface({ campaignId, characterId, onToggleCombat }: ChatInterfac
     setMessages((prev) => [...prev, playerMessage]);
     setInput("");
 
+    const gmMessageId = crypto.randomUUID();
+
     try {
       setLoading(true);
-      const response = await api.post("/chat", {
-        campaign_id: campaignId,
-        character_id: characterId,
-        content: playerMessage.content
+
+      // Add an empty GM message that we'll fill in as tokens stream
+      setMessages((prev) => [
+        ...prev,
+        { id: gmMessageId, role: "gm", content: "", createdAt: new Date().toISOString() }
+      ]);
+
+      const token = localStorage.getItem("dnd_ai_token");
+      const response = await fetch("/api/chat/stream", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          campaign_id: campaignId,
+          character_id: characterId,
+          content: playerMessage.content
+        })
       });
 
-      const gmMessage: ChatMessageType = {
-        id: crypto.randomUUID(),
-        role: "gm",
-        content: response.data.response,
-        createdAt: response.data.timestamp,
-        metadata: {
-          ...response.data.metadata,
-          ragSources: response.data.rag_sources
-        }
-      };
-
-      setMessages((prev) => [...prev, gmMessage]);
-      queryClient.invalidateQueries({ queryKey: ["chat-history", campaignId] });
-
-      if (response.data.metadata?.combatActive !== undefined) {
-        onToggleCombat(Boolean(response.data.metadata.combatActive));
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
       }
-      if (response.data.metadata?.model) {
-        setModelName(String(response.data.metadata.model));
+
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error("No response body");
+
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+
+        // Parse SSE events from buffer
+        const events = buffer.split("\n\n");
+        // Keep the last (possibly incomplete) chunk in the buffer
+        buffer = events.pop() ?? "";
+
+        for (const eventBlock of events) {
+          const lines = eventBlock.split("\n");
+          let eventType = "";
+          let data = "";
+
+          for (const line of lines) {
+            if (line.startsWith("event: ")) eventType = line.slice(7);
+            else if (line.startsWith("data: ")) data = line.slice(6);
+          }
+
+          if (eventType === "token" && data) {
+            const token = JSON.parse(data) as string;
+            setMessages((prev) =>
+              prev.map((m) => (m.id === gmMessageId ? { ...m, content: m.content + token } : m))
+            );
+          } else if (eventType === "done" && data) {
+            const payload = JSON.parse(data) as {
+              response: string;
+              rag_sources: string[];
+              metadata: Record<string, unknown>;
+              timestamp: string;
+            };
+
+            // Finalize the GM message with full content and metadata
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === gmMessageId
+                  ? {
+                      ...m,
+                      content: payload.response,
+                      createdAt: payload.timestamp,
+                      metadata: { ...payload.metadata, ragSources: payload.rag_sources }
+                    }
+                  : m
+              )
+            );
+
+            queryClient.invalidateQueries({ queryKey: ["chat-history", campaignId] });
+
+            if (payload.metadata?.combatActive !== undefined) {
+              onToggleCombat(Boolean(payload.metadata.combatActive));
+            }
+            if (payload.metadata?.model) {
+              setModelName(String(payload.metadata.model));
+            }
+          }
+        }
       }
     } catch (error) {
       console.error("Failed to send chat message", error);
       setLastError("The Dungeon Master is thinking... please try again.");
+      // Remove the empty GM message on failure
+      setMessages((prev) => prev.filter((m) => m.id !== gmMessageId));
     } finally {
       setLoading(false);
     }
@@ -146,6 +240,18 @@ function ChatInterface({ campaignId, characterId, onToggleCombat }: ChatInterfac
           </div>
         ) : (
           <>
+            {hasNextPage ? (
+              <div className="text-center pb-2">
+                <button
+                  type="button"
+                  className="text-xs font-display font-semibold text-arcane-blue-700 hover:text-arcane-blue-500 disabled:opacity-50"
+                  disabled={isFetchingNextPage}
+                  onClick={handleLoadEarlier}
+                >
+                  {isFetchingNextPage ? "Loading..." : "Load earlier messages"}
+                </button>
+              </div>
+            ) : null}
             {messages.map((message) => {
             const ragSources = (message.metadata?.ragSources as string[] | undefined) ?? [];
             const ragCitations = message.metadata?.ragCitations as RAGCitation[] | undefined;

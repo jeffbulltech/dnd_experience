@@ -1,18 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
+from ..config import get_settings
 from ..database import get_db
 from ..dependencies.auth import get_current_user
 from ..models import User
+from ..rate_limit import limiter
 from ..schemas.auth import LoginRequest, TokenResponse, UserCreate, UserRead
 from ..services import auth_service
 
+settings = get_settings()
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-def register_user(payload: UserCreate, db: Session = Depends(get_db)) -> UserRead:
+@limiter.limit(settings.rate_limit_auth)
+def register_user(request: Request, payload: UserCreate, db: Session = Depends(get_db)) -> UserRead:
     try:
         return auth_service.create_user(db, payload)
     except ValueError as exc:
@@ -20,7 +24,8 @@ def register_user(payload: UserCreate, db: Session = Depends(get_db)) -> UserRea
 
 
 @router.post("/token", response_model=TokenResponse)
-def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)) -> TokenResponse:
+@limiter.limit(settings.rate_limit_auth)
+def login(request: Request, form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)) -> TokenResponse:
     credentials = LoginRequest(username=form_data.username, password=form_data.password)
     try:
         return auth_service.authenticate_user(db, credentials)

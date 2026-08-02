@@ -58,5 +58,4 @@ def get_roll_history(
         if not character or character.user_id != current_user.id:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Character access denied")
     return dice_service.list_rolls(db, campaign_id=campaign_id, character_id=character_id, limit=limit)
-from typing import Sequence
 
