@@ -125,6 +125,12 @@ export type ChatHistoryEntry = {
   created_at: string;
 };
 
+export type ChatHistoryPage = {
+  items: ChatHistoryEntry[];
+  has_more: boolean;
+  next_cursor: number | null;
+};
+
 export type RAGCitation = {
   excerpt: string;
   source: string;

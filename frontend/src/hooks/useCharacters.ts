@@ -65,7 +65,9 @@ export function useUpdateCharacter() {
   return useMutation({
     mutationFn: updateCharacterRequest,
     onSuccess: () => {
+      // Invalidate all character queries to refresh both campaign and all-user character lists
       queryClient.invalidateQueries({ queryKey: ["characters"], exact: false });
+      queryClient.refetchQueries({ queryKey: ["characters"], exact: false });
     }
   });
 }

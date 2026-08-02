@@ -1,12 +1,17 @@
 from __future__ import annotations
 
 import argparse
+import logging
 from pathlib import Path
 
+from app.logging_config import setup_logging
 from app.services import rag_service
+
+logger = logging.getLogger(__name__)
 
 
 def main() -> None:
+    setup_logging()
     parser = argparse.ArgumentParser(description="Ingest SRD documents into the vector store.")
     parser.add_argument(
         "--source-dir",
@@ -40,9 +45,11 @@ def main() -> None:
         chunk_overlap=args.chunk_overlap,
     )
 
-    print(
-        f"Ingested {summary.documents_ingested} documents into "
-        f"{summary.chunks_written} chunks at {summary.persist_directory}"
+    logger.info(
+        "Ingested %d documents into %d chunks at %s",
+        summary.documents_ingested,
+        summary.chunks_written,
+        summary.persist_directory,
     )
 
 

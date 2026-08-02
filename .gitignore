@@ -1,5 +1,6 @@
 # Python
 .venv/
+.dnd/
 __pycache__/
 *.py[cod]
 .mypy_cache/
@@ -11,11 +12,11 @@ dist/
 
 # Environment
 .env
-.env.*
+.env.local
 dnd.db
 
 # OS
 .DS_Store
 
-# Development Docker
-docker-compose.yml
+# Misc
+project_review.md

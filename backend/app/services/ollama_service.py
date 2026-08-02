@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable, Generator
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import TYPE_CHECKING
@@ -51,9 +52,31 @@ SYSTEM_PROMPT_TEMPLATE = (
     "Character information:\n{character_sheet}\n\n"
     "Summary of earlier events (if provided):\n{chat_summary}\n\n"
     "Relevant rules and references:\n{rag_context}\n\n"
-    "Respond in a natural, atmospheric tone, clearly calling out rule checks or dice rolls when needed. "
-    "Explain any rule decisions succinctly. Always maintain the GM screen - describe what characters experience, "
-    "not the mechanical details behind the scenes."
+    "RESPONSE STYLE - CRITICAL RULES:\n\n"
+    "1. REACTIVE STORYTELLING: You are a REACTIVE Game Master. Describe what happens AFTER the player's action, "
+    "not what they COULD do. Never preemptively suggest actions, checks, or options. Wait for the player to declare "
+    "what they want to do, then narrate the result.\n\n"
+    "2. SCENE DESCRIPTION: When describing a new location or situation, focus on:\n"
+    "   - What the character observes (sights, sounds, smells, atmosphere)\n"
+    "   - Where they are now\n"
+    "   - What just happened (if responding to an action)\n"
+    "   - Observable details that might inform their next decision\n"
+    "   DO NOT list options like 'You can do X, Y, or Z' or 'You can make a Perception check'\n\n"
+    "3. ACTION CHECKS: Only suggest ability checks or dice rolls when:\n"
+    "   - The player has explicitly declared an action that requires a check\n"
+    "   - The check is necessary to resolve their declared action\n"
+    "   NEVER suggest checks preemptively or offer multiple check options in one response\n\n"
+    "4. PLAYER AGENCY: Let players discover what to do through observation and roleplay. Describe the world, "
+    "not a menu of options. Trust that players will declare actions based on what they observe.\n\n"
+    "5. PACE: Keep responses focused. Describe the immediate result of the player's action and the current scene. "
+    "Avoid advancing the story multiple steps ahead or describing multiple potential paths.\n\n"
+    "BAD EXAMPLE: 'You can make a Perception check to notice anything unusual. You can also make a Stealth check "
+    "to approach quietly.'\n"
+    "GOOD EXAMPLE: 'The corridor stretches ahead, dimly lit by flickering torches. The air carries a faint scent "
+    "of decay. What do you do?'\n\n"
+    "Respond in a natural, atmospheric tone. When a player declares an action that requires a check, clearly "
+    "call out the required roll. Explain rule decisions succinctly. Always maintain the GM screen - describe "
+    "what characters experience, not the mechanical details behind the scenes."
 )
 
 
@@ -69,12 +92,26 @@ def generate_gm_response(
     message: ChatMessage,
     rag_context: "RAGContext",
     chat_summary: str | None = None,
+    game_state_text: str | None = None,
+    character_text: str | None = None,
 ) -> OllamaResponse:
     """Generate a Dungeon Master narration using the configured Ollama model."""
-    messages = _build_messages(message, rag_context, chat_summary=chat_summary)
+    messages = _build_messages(
+        message, rag_context,
+        chat_summary=chat_summary,
+        game_state_text=game_state_text,
+        character_text=character_text,
+    )
 
     try:
-        response = _get_client().chat(model=settings.ollama_model, messages=messages)
+        response = _get_client().chat(
+            model=settings.ollama_model,
+            messages=messages,
+            options={
+                "num_ctx": settings.ollama_num_ctx,
+                "temperature": settings.ollama_temperature,
+            },
+        )
         payload = response.get("message", {})
         return OllamaResponse(
             content=payload.get("content", "").strip(),
@@ -88,16 +125,75 @@ def generate_gm_response(
         return OllamaResponse(content=fallback, model=settings.ollama_model)
 
 
+def stream_gm_response(
+    message: ChatMessage,
+    rag_context: "RAGContext",
+    chat_summary: str | None = None,
+    game_state_text: str | None = None,
+    character_text: str | None = None,
+) -> tuple[Generator[str, None, None], Callable[[], OllamaResponse]]:
+    """Stream Dungeon Master tokens from Ollama.
+
+    Returns a (token_generator, get_final_response) pair.  The generator
+    yields content-delta strings.  After the generator is exhausted, call
+    get_final_response() to obtain aggregate token counts and model info.
+    """
+    messages = _build_messages(
+        message, rag_context,
+        chat_summary=chat_summary,
+        game_state_text=game_state_text,
+        character_text=character_text,
+    )
+    result = OllamaResponse(content="", model=settings.ollama_model)
+
+    def _tokens() -> Generator[str, None, None]:
+        nonlocal result
+        try:
+            stream = _get_client().chat(
+                model=settings.ollama_model,
+                messages=messages,
+                stream=True,
+                options={
+                    "num_ctx": settings.ollama_num_ctx,
+                    "temperature": settings.ollama_temperature,
+                },
+            )
+            collected: list[str] = []
+            for chunk in stream:
+                msg = chunk.get("message", {})
+                delta = msg.get("content", "")
+                if delta:
+                    collected.append(delta)
+                    yield delta
+                # Last chunk carries the totals
+                if chunk.get("done"):
+                    result = OllamaResponse(
+                        content="".join(collected).strip(),
+                        model=chunk.get("model", settings.ollama_model),
+                        prompt_tokens=chunk.get("prompt_eval_count"),
+                        completion_tokens=chunk.get("eval_count"),
+                    )
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning("Streaming fallback: %s", exc)
+            fallback = _compose_fallback_response(messages)
+            result = OllamaResponse(content=fallback, model=settings.ollama_model)
+            yield fallback
+
+    return _tokens(), lambda: result
+
+
 def _build_messages(
     message: ChatMessage,
     rag_context: "RAGContext",
     *,
     chat_summary: str | None = None,
+    game_state_text: str | None = None,
+    character_text: str | None = None,
 ) -> list[dict[str, str]]:
     rag_text = _format_rag_context(rag_context)
     system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
-        game_state="Game state integration pending.",
-        character_sheet="Character sheet retrieval pending.",
+        game_state=game_state_text or "No game state available yet.",
+        character_sheet=character_text or "No character sheet linked to this campaign.",
         chat_summary=chat_summary or "No summary available.",
         rag_context=rag_text,
     )

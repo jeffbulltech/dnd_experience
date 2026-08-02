@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from collections.abc import Sequence
 
 from sqlalchemy import select
@@ -9,6 +10,8 @@ from ..models import Campaign, ChatMessage as ChatLogEntry, GameState
 from ..schemas.campaigns import CampaignCreate, CampaignRead, CampaignUpdate
 from ..schemas.chat import ChatMessage
 from . import adventure_service, game_master, rag_service
+
+logger = logging.getLogger(__name__)
 
 
 def list_campaigns(db: Session, *, owner_id: int) -> Sequence[CampaignRead]:
@@ -44,11 +47,9 @@ def create_campaign(db: Session, payload: CampaignCreate, owner_id: int) -> Camp
 
 def _generate_welcome_message(db: Session, campaign: Campaign, user_id: int) -> None:
     """Generate and store an initial welcome message from the AI Game Master."""
-    import logging
     from .ollama_service import _format_rag_context, _get_client
     from ..config import get_settings
 
-    logger = logging.getLogger(__name__)
     settings = get_settings()
 
     # Get adventure seed content if template is selected
@@ -115,7 +116,7 @@ def _generate_welcome_message(db: Session, campaign: Campaign, user_id: int) -> 
             if not welcome_content:
                 raise ValueError("Empty response from Ollama")
         except Exception as e:
-            logger.warning(f"Failed to generate welcome from Ollama: {e}")
+            logger.warning("Failed to generate welcome from Ollama: %s", e)
             welcome_content = (
                 f"Welcome, adventurer, to {campaign.name}! "
                 "Your journey begins here. What would you like to do?"
@@ -134,7 +135,7 @@ def _generate_welcome_message(db: Session, campaign: Campaign, user_id: int) -> 
         db.commit()
     except Exception as e:
         # If welcome generation fails, create a simple default message
-        logger.warning(f"Failed to generate welcome message: {e}")
+        logger.warning("Failed to generate welcome message: %s", e)
         default_welcome = (
             f"Welcome, adventurer, to {campaign.name}! "
             "Your journey begins here. What would you like to do?"

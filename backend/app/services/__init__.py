@@ -16,7 +16,6 @@ from . import (
     ollama_service,
     pdf_service,
     rag_service,
-    rules_engine,
 )
 
 __all__ = [
@@ -37,5 +36,4 @@ __all__ = [
     "ollama_service",
     "pdf_service",
     "rag_service",
-    "rules_engine",
 ]
