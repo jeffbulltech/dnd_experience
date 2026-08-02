@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable, Generator
 from dataclasses import dataclass
 from functools import lru_cache
 from typing import TYPE_CHECKING
@@ -91,12 +92,26 @@ def generate_gm_response(
     message: ChatMessage,
     rag_context: "RAGContext",
     chat_summary: str | None = None,
+    game_state_text: str | None = None,
+    character_text: str | None = None,
 ) -> OllamaResponse:
     """Generate a Dungeon Master narration using the configured Ollama model."""
-    messages = _build_messages(message, rag_context, chat_summary=chat_summary)
+    messages = _build_messages(
+        message, rag_context,
+        chat_summary=chat_summary,
+        game_state_text=game_state_text,
+        character_text=character_text,
+    )
 
     try:
-        response = _get_client().chat(model=settings.ollama_model, messages=messages)
+        response = _get_client().chat(
+            model=settings.ollama_model,
+            messages=messages,
+            options={
+                "num_ctx": settings.ollama_num_ctx,
+                "temperature": settings.ollama_temperature,
+            },
+        )
         payload = response.get("message", {})
         return OllamaResponse(
             content=payload.get("content", "").strip(),
@@ -110,16 +125,75 @@ def generate_gm_response(
         return OllamaResponse(content=fallback, model=settings.ollama_model)
 
 
+def stream_gm_response(
+    message: ChatMessage,
+    rag_context: "RAGContext",
+    chat_summary: str | None = None,
+    game_state_text: str | None = None,
+    character_text: str | None = None,
+) -> tuple[Generator[str, None, None], Callable[[], OllamaResponse]]:
+    """Stream Dungeon Master tokens from Ollama.
+
+    Returns a (token_generator, get_final_response) pair.  The generator
+    yields content-delta strings.  After the generator is exhausted, call
+    get_final_response() to obtain aggregate token counts and model info.
+    """
+    messages = _build_messages(
+        message, rag_context,
+        chat_summary=chat_summary,
+        game_state_text=game_state_text,
+        character_text=character_text,
+    )
+    result = OllamaResponse(content="", model=settings.ollama_model)
+
+    def _tokens() -> Generator[str, None, None]:
+        nonlocal result
+        try:
+            stream = _get_client().chat(
+                model=settings.ollama_model,
+                messages=messages,
+                stream=True,
+                options={
+                    "num_ctx": settings.ollama_num_ctx,
+                    "temperature": settings.ollama_temperature,
+                },
+            )
+            collected: list[str] = []
+            for chunk in stream:
+                msg = chunk.get("message", {})
+                delta = msg.get("content", "")
+                if delta:
+                    collected.append(delta)
+                    yield delta
+                # Last chunk carries the totals
+                if chunk.get("done"):
+                    result = OllamaResponse(
+                        content="".join(collected).strip(),
+                        model=chunk.get("model", settings.ollama_model),
+                        prompt_tokens=chunk.get("prompt_eval_count"),
+                        completion_tokens=chunk.get("eval_count"),
+                    )
+        except Exception as exc:  # pragma: no cover - defensive
+            logger.warning("Streaming fallback: %s", exc)
+            fallback = _compose_fallback_response(messages)
+            result = OllamaResponse(content=fallback, model=settings.ollama_model)
+            yield fallback
+
+    return _tokens(), lambda: result
+
+
 def _build_messages(
     message: ChatMessage,
     rag_context: "RAGContext",
     *,
     chat_summary: str | None = None,
+    game_state_text: str | None = None,
+    character_text: str | None = None,
 ) -> list[dict[str, str]]:
     rag_text = _format_rag_context(rag_context)
     system_prompt = SYSTEM_PROMPT_TEMPLATE.format(
-        game_state="Game state integration pending.",
-        character_sheet="Character sheet retrieval pending.",
+        game_state=game_state_text or "No game state available yet.",
+        character_sheet=character_text or "No character sheet linked to this campaign.",
         chat_summary=chat_summary or "No summary available.",
         rag_context=rag_text,
     )

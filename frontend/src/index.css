@@ -125,31 +125,4 @@
     @apply bg-arcane-blue-700/70;
   }
 
-  .ornate-border {
-    position: relative;
-    border: 2px solid rgba(30, 58, 138, 0.3);
-  }
-
-  .ornate-border::before,
-  .ornate-border::after {
-    content: "";
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    border: 2px solid rgba(212, 175, 55, 0.4);
-  }
-
-  .ornate-border::before {
-    top: -2px;
-    left: -2px;
-    border-right: none;
-    border-bottom: none;
-  }
-
-  .ornate-border::after {
-    bottom: -2px;
-    right: -2px;
-    border-left: none;
-    border-top: none;
-  }
 }

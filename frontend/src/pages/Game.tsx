@@ -35,8 +35,8 @@ function Game(): JSX.Element {
   // Check if story has started (has any player messages beyond welcome)
   const storyHasStarted = useMemo(() => {
     if (!chatHistory) return false;
-    // Story has started if there are any player messages
-    return chatHistory.some((entry) => entry.role === "player");
+    // Flatten all pages and check for player messages
+    return chatHistory.pages.some((page) => page.items.some((entry) => entry.role === "player"));
   }, [chatHistory]);
 
   // Always fetch campaign characters to see if one is linked

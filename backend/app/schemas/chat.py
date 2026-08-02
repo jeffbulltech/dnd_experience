@@ -31,3 +31,9 @@ class ChatHistoryEntry(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ChatHistoryPage(BaseModel):
+    items: list[ChatHistoryEntry]
+    has_more: bool
+    next_cursor: int | None = None

@@ -17,6 +17,7 @@ function CharacterCreation(): JSX.Element {
   const [selectedRace, setSelectedRace] = useState(races[0]);
   const [background, setBackground] = useState("");
   const [campaignId, setCampaignId] = useState<number | undefined>(undefined);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!campaignId && campaigns.length > 0) {
@@ -26,15 +27,23 @@ function CharacterCreation(): JSX.Element {
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await createCharacter.mutateAsync({
-      name,
-      character_class: selectedClass,
-      race: selectedRace,
-      background: background || undefined,
-      level: 1,
-      campaign_id: campaignId
-    });
-    navigate("/campaigns");
+    setErrorMessage(null);
+    try {
+      await createCharacter.mutateAsync({
+        name,
+        character_class: selectedClass,
+        race: selectedRace,
+        background: background || undefined,
+        level: 1,
+        campaign_id: campaignId
+      });
+      navigate("/campaigns");
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
+        "Something went wrong creating your character. Please try again.";
+      setErrorMessage(typeof message === "string" ? message : JSON.stringify(message));
+    }
   };
 
   return (
@@ -43,6 +52,12 @@ function CharacterCreation(): JSX.Element {
         <h1 className="text-3xl font-serif text-arcane-blue">Forge a Hero</h1>
         <p className="text-gray-700">Follow the guided steps to breathe life into your next adventurer.</p>
       </header>
+
+      {errorMessage ? (
+        <div role="alert" className="rounded border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {errorMessage}
+        </div>
+      ) : null}
 
       <form className="space-y-4 rounded-lg border border-arcane-blue/40 bg-white/80 p-6 shadow" onSubmit={handleSubmit}>
         <label className="block">
@@ -89,8 +104,10 @@ function CharacterCreation(): JSX.Element {
             placeholder="Scholar from the Ivory Archives..."
             value={background}
             onChange={(event) => setBackground(event.target.value)}
+            maxLength={100}
             rows={3}
           />
+          <span className="text-xs text-gray-400">{background.length}/100</span>
         </label>
 
         <label className="block">

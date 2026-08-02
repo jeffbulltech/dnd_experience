@@ -1,5 +1,3 @@
-import { useMemo } from "react";
-
 import { Background, CharacterDraftStepPayload, Species } from "../../types";
 
 type OriginStepProps = {
@@ -16,8 +14,8 @@ function OriginStep({ species, backgrounds, languages, initialValues, onChange, 
   const selectedBackground = initialValues?.background as string | undefined;
   const bonusLanguages = (initialValues?.languages as string[]) ?? [];
 
-  const speciesOptions = useMemo(() => species, [species]);
-  const backgroundOptions = useMemo(() => backgrounds, [backgrounds]);
+  const speciesOptions = species;
+  const backgroundOptions = backgrounds;
 
   const handleSpeciesChange = (value: string) => {
     onChange({
