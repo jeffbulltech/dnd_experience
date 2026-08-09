@@ -20,8 +20,8 @@ function ProtectedLayout(): JSX.Element {
         <div className="relative mx-auto flex max-w-5xl items-center justify-between p-5">
           <div className="flex items-center gap-4">
             <Link to="/campaigns" className="flex items-center gap-4 hover:opacity-90 transition-opacity">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dragon-gold-500/60 bg-gradient-to-br from-dragon-gold-400 to-dragon-gold-700 shadow-lg">
-                <span className="text-xl font-display text-shadow-black">⚔</span>
+              <div className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-dragon-gold-500/60 bg-gradient-to-br from-dragon-gold-400 to-dragon-gold-700 shadow-torch">
+                <span className="torch-flicker text-xl text-shadow-black">🔥</span>
               </div>
               <div>
                 <h1 className="text-3xl font-display font-bold text-dragon-gold-300 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
