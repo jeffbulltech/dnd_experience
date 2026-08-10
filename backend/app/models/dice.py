@@ -17,7 +17,7 @@ class DiceRoll(Base):
     __tablename__ = "dice_rolls"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    campaign_id: Mapped[int] = mapped_column(ForeignKey("campaigns.id", ondelete="CASCADE"), nullable=False)
+    campaign_id: Mapped[int | None] = mapped_column(ForeignKey("campaigns.id", ondelete="CASCADE"))
     character_id: Mapped[int | None] = mapped_column(ForeignKey("characters.id", ondelete="SET NULL"))
     roller_type: Mapped[Literal["player", "gm", "system"]] = mapped_column(String(20), nullable=False)
     expression: Mapped[str] = mapped_column(String(50), nullable=False)
@@ -26,6 +26,6 @@ class DiceRoll(Base):
     extra: Mapped[dict | None] = mapped_column("metadata", JSON, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=datetime.utcnow, nullable=False)
 
-    campaign: Mapped[Campaign] = relationship("Campaign", back_populates="dice_rolls")
+    campaign: Mapped[Campaign | None] = relationship("Campaign", back_populates="dice_rolls")
     character: Mapped[Character | None] = relationship("Character")
 

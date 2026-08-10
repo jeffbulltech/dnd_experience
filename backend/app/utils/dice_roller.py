@@ -37,6 +37,16 @@ def roll_dice(request: DiceRollRequest) -> DiceRollResult:
         else:
             has_disadvantage = count == 2 and threshold == 1 and sides == 20
             kept_rolls = sorted(rolls)[:threshold]
+    elif sides == 20 and count == 1 and (request.has_advantage or request.has_disadvantage) and not (
+        request.has_advantage and request.has_disadvantage
+    ):
+        rolls = rolls + _roll_multiple(1, sides)
+        if request.has_advantage:
+            has_advantage = True
+            kept_rolls = [max(rolls)]
+        else:
+            has_disadvantage = True
+            kept_rolls = [min(rolls)]
 
     total = sum(kept_rolls) + modifier
 

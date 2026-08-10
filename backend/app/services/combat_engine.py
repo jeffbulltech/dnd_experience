@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 
 from ..models import Campaign, Encounter, EncounterParticipant
 from ..schemas.combat import (
@@ -61,6 +62,7 @@ def process_action(db: Session, payload: CombatActionRequest) -> CombatState:
         }
     )
     encounter.extra = log
+    flag_modified(encounter, "extra")
     encounter.updated_at = datetime.utcnow()
 
     db.add(encounter)

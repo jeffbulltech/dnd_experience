@@ -12,7 +12,6 @@ from ..schemas.dice import DiceRollLog
 
 def record_roll(
     db: Session,
-    *,
     campaign_id: int | None,
     character_id: int | None,
     roller_type: str,

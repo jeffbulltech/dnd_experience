@@ -42,7 +42,7 @@ describe('Login Page', () => {
         expect(screen.getByText(/Welcome back, adventurer/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/Username/i)).toBeInTheDocument();
         expect(screen.getByLabelText(/Password/i)).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /Sign In/i })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /Enter the Realm/i })).toBeInTheDocument();
     });
 
     test('calls login with credentials on submit', async () => {
@@ -53,7 +53,7 @@ describe('Login Page', () => {
         fireEvent.change(screen.getByLabelText(/Password/i), { target: { value: 'password123' } });
 
         // Submit
-        fireEvent.click(screen.getByRole('button', { name: /Sign In/i }));
+        fireEvent.click(screen.getByRole('button', { name: /Enter the Realm/i }));
 
         await waitFor(() => {
             expect(mockLogin).toHaveBeenCalledWith('testuser', 'password123');
@@ -74,7 +74,7 @@ describe('Login Page', () => {
         fireEvent.change(screen.getByLabelText(/Password/i), { target: { value: 'wrongpass' } });
 
         // Submit
-        fireEvent.click(screen.getByRole('button', { name: /Sign In/i }));
+        fireEvent.click(screen.getByRole('button', { name: /Enter the Realm/i }));
 
         await waitFor(() => {
             expect(screen.getByText(/Invalid credentials, please try again/i)).toBeInTheDocument();

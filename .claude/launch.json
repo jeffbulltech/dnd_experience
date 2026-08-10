@@ -10,7 +10,7 @@
     },
     {
       "name": "backend",
-      "runtimeExecutable": "python3",
+      "runtimeExecutable": "backend/.venv/bin/python3",
       "runtimeArgs": ["-m", "uvicorn", "backend.app.main:app", "--reload"],
       "port": 8000
     }

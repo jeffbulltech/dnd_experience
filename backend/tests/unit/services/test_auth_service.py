@@ -37,7 +37,7 @@ class TestAuthService:
         user_data1 = UserCreate(
             email="duplicate@example.com",
             username="user1",
-            password="pass123",
+            password="pass12345",
             display_name="User One"
         )
         auth_service.create_user(db_session, user_data1)
@@ -45,7 +45,7 @@ class TestAuthService:
         user_data2 = UserCreate(
             email="duplicate@example.com",  # Same email
             username="user2",
-            password="pass123",
+            password="pass12345",
             display_name="User Two"
         )
         
@@ -57,7 +57,7 @@ class TestAuthService:
         user_data1 = UserCreate(
             email="user1@example.com",
             username="duplicate",
-            password="pass123",
+            password="pass12345",
             display_name="User One"
         )
         auth_service.create_user(db_session, user_data1)
@@ -65,7 +65,7 @@ class TestAuthService:
         user_data2 = UserCreate(
             email="user2@example.com",
             username="duplicate",  # Same username
-            password="pass123",
+            password="pass12345",
             display_name="User Two"
         )
         
@@ -115,13 +115,13 @@ class TestAuthService:
         user_data = UserCreate(
             email="token@example.com",
             username="tokentest",
-            password="pass123",
+            password="pass12345",
             display_name="Token Test"
         )
         created_user = auth_service.create_user(db_session, user_data)
         
         # Create a token
-        login_request = LoginRequest(username="tokentest", password="pass123")
+        login_request = LoginRequest(username="tokentest", password="pass12345")
         token_response = auth_service.authenticate_user(db_session, login_request)
         
         # Get user from token

@@ -162,9 +162,9 @@ def get_campaign(db: Session, campaign_id: int) -> CampaignRead | None:
 def update_campaign(db: Session, campaign_id: int, payload: CampaignUpdate, *, owner_id: int) -> CampaignRead:
     campaign = db.get(Campaign, campaign_id)
     if campaign is None:
-        raise ValueError("Campaign not found.")
+        raise ValueError("Campaign not found or access denied.")
     if campaign.owner_id != owner_id:
-        raise ValueError("Campaign not found.")
+        raise ValueError("Campaign not found or access denied.")
 
     update_data = payload.model_dump(exclude_unset=True)
     for key, value in update_data.items():
@@ -179,9 +179,9 @@ def update_campaign(db: Session, campaign_id: int, payload: CampaignUpdate, *, o
 def delete_campaign(db: Session, campaign_id: int, *, owner_id: int) -> None:
     campaign = db.get(Campaign, campaign_id)
     if campaign is None:
-        raise ValueError("Campaign not found.")
+        raise ValueError("Campaign not found or access denied.")
     if campaign.owner_id != owner_id:
-        raise ValueError("Campaign not found.")
+        raise ValueError("Campaign not found or access denied.")
 
     db.delete(campaign)
     db.commit()
