@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.models import ChatMessage
+from app.models import Campaign, ChatMessage
 from app.services import chat_service
 from tests.fixtures.campaigns import create_test_campaign
 from tests.fixtures.characters import create_test_character
@@ -15,8 +15,9 @@ class TestChatService:
     def test_fetch_chat_history_success(self, db_session):
         """Test successful chat history retrieval."""
         user = create_test_user(db_session)
+        # Campaign creation seeds a welcome message from the GM.
         campaign = create_test_campaign(db_session, user.id)
-        
+
         # Create some chat messages
         msg1 = ChatMessage(
             campaign_id=campaign.id,
@@ -36,12 +37,13 @@ class TestChatService:
         )
         db_session.add_all([msg1, msg2])
         db_session.commit()
-        
+
         history = chat_service.fetch_chat_history(
             db_session, campaign_id=campaign.id, limit=10
         )
-        
-        assert len(history) == 2
+
+        # Welcome message + the 2 messages created above.
+        assert len(history) == 3
         assert history[0].role in ["player", "gm"]
         assert history[1].role in ["player", "gm"]
 
@@ -75,12 +77,16 @@ class TestChatService:
     def test_fetch_chat_history_empty(self, db_session):
         """Test fetching history when no messages exist."""
         user = create_test_user(db_session)
-        campaign = create_test_campaign(db_session, user.id)
-        
+        # Build the campaign directly (bypassing campaign_service.create_campaign)
+        # so no welcome message is seeded, leaving chat history genuinely empty.
+        campaign = Campaign(name="Empty Campaign", owner_id=user.id)
+        db_session.add(campaign)
+        db_session.commit()
+
         history = chat_service.fetch_chat_history(
             db_session, campaign_id=campaign.id, limit=10
         )
-        
+
         assert len(history) == 0
 
     def test_fetch_chat_history_filters_by_campaign(self, db_session):
@@ -111,9 +117,12 @@ class TestChatService:
         camp1_history = chat_service.fetch_chat_history(
             db_session, campaign_id=campaign1.id, limit=10
         )
-        
-        assert len(camp1_history) == 1
-        assert camp1_history[0].content == "Camp 1 message"
+
+        # Welcome message + the explicit message created above, both scoped
+        # to campaign1 only.
+        assert len(camp1_history) == 2
+        assert "Camp 1 message" in [msg.content for msg in camp1_history]
+        assert "Camp 2 message" not in [msg.content for msg in camp1_history]
 
     def test_fetch_chat_history_includes_character_id(self, db_session):
         """Test that history includes messages with character_id."""
@@ -143,8 +152,9 @@ class TestChatService:
         history = chat_service.fetch_chat_history(
             db_session, campaign_id=campaign.id, limit=10
         )
-        
-        assert len(history) == 2
+
+        # Welcome message + the 2 messages created above.
+        assert len(history) == 3
         # Both should be included regardless of character_id
         contents = [msg.content for msg in history]
         assert "No character" in contents

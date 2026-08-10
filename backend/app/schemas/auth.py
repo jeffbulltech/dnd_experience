@@ -15,6 +15,7 @@ class UserRead(BaseModel):
     email: EmailStr
     username: str
     display_name: str
+    is_active: bool
     created_at: datetime
     updated_at: datetime
 

@@ -6,6 +6,8 @@ class DiceRollRequest(BaseModel):
     campaign_id: int | None = Field(None, ge=1)
     character_id: int | None = Field(None, ge=1)
     roller_type: str | None = None
+    has_advantage: bool = False
+    has_disadvantage: bool = False
 
     @field_validator("expression")
     @classmethod

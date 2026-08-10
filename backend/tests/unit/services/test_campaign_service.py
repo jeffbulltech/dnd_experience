@@ -94,7 +94,7 @@ class TestCampaignService:
         
         assert len(messages) == 1
         assert messages[0].extra.get("is_welcome") is True
-        assert "Welcome" in messages[0].content or "adventurer" in messages[0].content.lower()
+        assert messages[0].content == "Test GM response"
 
     def test_list_campaigns_filters_by_owner(self, db_session):
         """Test that list_campaigns only returns owner's campaigns."""

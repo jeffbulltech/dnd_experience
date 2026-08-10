@@ -392,7 +392,8 @@ def test_chat_history(db_session):
     db_session.commit()
 
     history = chat_service.fetch_chat_history(db_session, campaign_id=campaign.id, limit=10)
-    assert len(history) == 2
+    # Welcome message + the 2 messages created above.
+    assert len(history) == 3
     assert history[0].role in {"player", "gm"}
 
 
